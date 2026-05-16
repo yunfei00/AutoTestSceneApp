@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AutoTestSceneApp">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AutoTestSceneApp">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".SceneEntryActivity"
+            android:exported="true" />
+        <activity
+            android:name=".scene.MotorSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.MusicSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.VideoSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.DynamicWallpaperSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.GameHeavySceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.FlashlightSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.RecorderSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.MirrorSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.CompassSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.AmbientLightSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.WhiteScreenSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.FrontCameraSceneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".scene.RearCameraSceneActivity"
+            android:exported="false" />
+        <receiver
+            android:name=".scene.StopSceneReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.yunfei.autotestscene.STOP" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

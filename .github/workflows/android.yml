@@ -1,0 +1,95 @@
+name: Android Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - "**"
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Android app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-36.1"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run checks and build APK
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug --no-daemon --stacktrace
+
+      - name: Prepare APK artifact
+        run: |
+          mkdir -p artifacts
+          cp app/build/outputs/apk/debug/app-debug.apk artifacts/AutoTestSceneApp-debug.apk
+          sha256sum artifacts/AutoTestSceneApp-debug.apk > artifacts/AutoTestSceneApp-debug.apk.sha256
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoTestSceneApp-debug-apk
+          path: artifacts/
+          if-no-files-found: error
+
+  release:
+    name: Publish tagged APK
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: AutoTestSceneApp-debug-apk
+          path: release
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG_NAME: ${{ github.event.release.tag_name || github.ref_name }}
+        run: |
+          APK="release/AutoTestSceneApp-${TAG_NAME}.apk"
+          mv release/AutoTestSceneApp-debug.apk "$APK"
+          sha256sum "$APK" > "$APK.sha256"
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" "$APK" "$APK.sha256" --clobber
+          else
+            gh release create "$TAG_NAME" "$APK" "$APK.sha256" \
+              --title "$TAG_NAME" \
+              --notes "Installable Android debug APK built from commit ${GITHUB_SHA}."
+          fi
