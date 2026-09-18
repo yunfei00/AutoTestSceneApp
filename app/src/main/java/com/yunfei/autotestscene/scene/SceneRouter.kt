@@ -14,10 +14,10 @@ object SceneRouter {
         cpuThreads: Int = 2,
         audio: Boolean = false,
         vibration: Boolean = false
-    ) {
+    ): Boolean {
         if (sceneId == SceneIds.SCENE_GAME_LIGHT || sceneId == SceneIds.SCENE_GAME_2D) {
             ToastUtil.show(context, "该游戏场景暂未实现，请使用 game_heavy")
-            return
+            return false
         }
 
         val target = when (sceneId) {
@@ -39,7 +39,7 @@ object SceneRouter {
 
         if (target == null) {
             ToastUtil.show(context, "未知场景: ${sceneId ?: "null"}")
-            return
+            return false
         }
 
         val intent = Intent(context, target).apply {
@@ -57,5 +57,6 @@ object SceneRouter {
             }
         }
         context.startActivity(intent)
+        return true
     }
 }
