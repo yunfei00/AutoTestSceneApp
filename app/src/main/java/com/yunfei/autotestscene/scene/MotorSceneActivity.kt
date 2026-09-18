@@ -33,7 +33,7 @@ class MotorSceneActivity : ComponentActivity() {
 
     private val stopReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == SceneIds.ACTION_STOP) {
+            if (intent?.action == SceneIds.ACTION_STOP_INTERNAL) {
                 stopScene(shouldFinish = true)
             }
         }
@@ -86,7 +86,7 @@ class MotorSceneActivity : ComponentActivity() {
     }
 
     private fun registerStopReceiver() {
-        registerNotExportedReceiver(stopReceiver, IntentFilter(SceneIds.ACTION_STOP))
+        registerNotExportedReceiver(stopReceiver, IntentFilter(SceneIds.ACTION_STOP_INTERNAL))
     }
 }
 
