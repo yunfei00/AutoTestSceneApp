@@ -43,7 +43,7 @@ object SceneRouter {
         }
 
         val intent = Intent(context, target).apply {
-            // Keep duration extra for backward compatibility, but scenes ignore timeout now.
+            // SceneEntryActivity owns the watchdog; keep the extra available to scenes.
             putExtra(SceneIds.EXTRA_DURATION, duration)
             if (style != null) {
                 putExtra(SceneIds.EXTRA_STYLE, style)
