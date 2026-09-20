@@ -48,7 +48,7 @@ class MotorSceneActivity : ComponentActivity() {
         setContent {
             AutoTestSceneAppTheme {
                 SceneScreen(
-                    sceneName = "椹揪闇囧姩",
+                    sceneName = "马达震动",
                     statusText = statusText,
                     onStopClick = { stopScene(shouldFinish = true) }
                 )
@@ -102,14 +102,14 @@ private fun SceneScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "褰撳墠鍦烘櫙锛?sceneName")
+        Text(text = "当前场景：$sceneName")
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "褰撳墠鐘舵€侊細$statusText")
+        Text(text = "当前状态：$statusText")
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "鎺у埗鏂瑰紡锛氭敹鍒?STOP 骞挎挱鎴栫偣鍑诲仠姝㈡寜閽悗鍋滄")
+        Text(text = "控制方式：收到 STOP 广播或点击停止按钮后停止")
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onStopClick) {
-            Text("鍋滄")
+            Text("停止")
         }
     }
 }
