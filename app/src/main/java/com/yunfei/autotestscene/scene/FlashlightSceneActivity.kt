@@ -57,16 +57,16 @@ class FlashlightSceneActivity : ComponentActivity() {
                         .padding(24.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "褰撳墠鍦烘櫙锛氭墜鐢电瓛")
+                    Text(text = "当前场景：手电筒")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "褰撳墠鐘舵€侊細$statusText")
+                    Text(text = "当前状态：$statusText")
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Torch Camera ID: $torchCameraId")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "鍋滄鏂瑰紡锛欱ack 杩斿洖 / STOP 骞挎挱 / 鍋滄鎸夐挳")
+                    Text(text = "停止方式：Back 返回 / STOP 广播 / 停止按钮")
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { stopScene(shouldFinish = true) }) {
-                        Text("鍋滄")
+                        Text("停止")
                     }
                 }
             }
