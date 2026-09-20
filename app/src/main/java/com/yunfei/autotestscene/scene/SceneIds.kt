@@ -33,4 +33,5 @@ object SceneIds {
     const val STYLE_PARTICLES = "particles"
 
     const val ACTION_STOP = "com.yunfei.autotestscene.STOP"
+    const val ACTION_STOP_INTERNAL = "com.yunfei.autotestscene.STOP_INTERNAL"
 }

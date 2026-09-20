@@ -55,7 +55,7 @@ class CompassSceneActivity : ComponentActivity(), SensorEventListener {
 
     private val stopReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == SceneIds.ACTION_STOP) {
+            if (intent?.action == SceneIds.ACTION_STOP_INTERNAL) {
                 stopScene(shouldFinish = true)
             }
         }
@@ -75,17 +75,17 @@ class CompassSceneActivity : ComponentActivity(), SensorEventListener {
                         .padding(24.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "褰撳墠鍦烘櫙锛氭寚鍗楅拡")
+                    Text(text = "当前场景：指南针")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "褰撳墠鐘舵€侊細$statusText")
+                    Text(text = "当前状态：$statusText")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "鏂逛綅瑙掞細${azimuth.roundToInt()}掳")
+                    Text(text = "方位角：${azimuth.roundToInt()}°")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "鏂瑰悜鏂囧瓧锛?directionText")
+                    Text(text = "方向：$directionText")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "浼犳劅鍣ㄧ姸鎬侊細$sensorStatus")
+                    Text(text = "传感器状态：$sensorStatus")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "鍋滄鏂瑰紡锛欱ack 杩斿洖 / STOP 骞挎挱 / 鍋滄鎸夐挳")
+                    Text(text = "停止方式：Back 返回 / STOP 广播 / 停止按钮")
                     Spacer(modifier = Modifier.height(12.dp))
                     Canvas(modifier = Modifier
                         .fillMaxSize()
@@ -107,7 +107,7 @@ class CompassSceneActivity : ComponentActivity(), SensorEventListener {
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(onClick = { stopScene(shouldFinish = true) }) {
-                        Text("鍋滄")
+                        Text("停止")
                     }
                 }
             }
@@ -181,7 +181,7 @@ class CompassSceneActivity : ComponentActivity(), SensorEventListener {
     }
 
     private fun registerStopReceiver() {
-        registerNotExportedReceiver(stopReceiver, IntentFilter(SceneIds.ACTION_STOP))
+        registerNotExportedReceiver(stopReceiver, IntentFilter(SceneIds.ACTION_STOP_INTERNAL))
     }
 
     private fun registerBackHandler() {
