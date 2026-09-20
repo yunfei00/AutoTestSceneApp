@@ -419,7 +419,7 @@ private fun GameHeavyScreen(
                 .padding(bottom = 24.dp),
             onClick = onStopClick
         ) {
-            Text("鍋滄")
+            Text("停止")
         }
     }
 }
