@@ -99,11 +99,11 @@ abstract class BaseCameraSceneActivity : ComponentActivity() {
                                 .background(Color.Black.copy(alpha = 0.3f))
                                 .padding(10.dp)
                         ) {
-                            Text(text = "褰撳墠鍦烘櫙锛?sceneTitle", color = Color.White)
+                            Text(text = "当前场景：$sceneTitle", color = Color.White)
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(text = "褰撳墠鐘舵€侊細$statusText", color = Color.White)
+                            Text(text = "当前状态：$statusText", color = Color.White)
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(text = "鎸?Back 杩斿洖", color = Color.White)
+                            Text(text = "按 Back 返回", color = Color.White)
                         }
                     }
                 }
