@@ -12,7 +12,6 @@ import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -41,7 +40,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.yunfei.autotestscene.ui.theme.AutoTestSceneAppTheme
 
-abstract class BaseCameraSceneActivity : ComponentActivity() {
+abstract class BaseCameraSceneActivity : ControlledSceneActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var isStopped = false
     private var previewView: PreviewView? = null
@@ -135,9 +134,15 @@ abstract class BaseCameraSceneActivity : ComponentActivity() {
             runCatching {
                 provider.unbindAll()
                 provider.bindToLifecycle(this, selector, preview)
-                statusText = "Running"
+                previewView?.previewStreamState?.observe(this) { state ->
+                    if (state == PreviewView.StreamState.STREAMING) {
+                        statusText = "Running"
+                        resourceReady()
+                    }
+                }
             }.onFailure {
                 statusText = "Stopped (camera bind failed)"
+                resourceError("CAMERA_BIND_FAILED")
             }
         }, ContextCompat.getMainExecutor(this))
     }

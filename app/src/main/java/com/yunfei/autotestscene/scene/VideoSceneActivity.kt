@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
 import android.widget.VideoView
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +21,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.yunfei.autotestscene.R
 import com.yunfei.autotestscene.ui.theme.AutoTestSceneAppTheme
 
-class VideoSceneActivity : ComponentActivity() {
+class VideoSceneActivity : ControlledSceneActivity() {
     private var videoView: VideoView? = null
     private var stopped = false
     private var statusText by mutableStateOf("Stopped")
@@ -55,6 +54,7 @@ class VideoSceneActivity : ComponentActivity() {
 
     private fun updateStatus(status: String) {
         statusText = status
+        if (status == "Error") resourceError("VIDEO_PLAYBACK_FAILED")
     }
 
     private fun startVideo() {
@@ -68,6 +68,10 @@ class VideoSceneActivity : ComponentActivity() {
                 updateStatus("Running")
                 vv.start()
                 Log.d("AutoTestSceneApp", "VideoSceneActivity started playing R.raw.test_video")
+            }
+            vv.setOnInfoListener { _, what, _ ->
+                if (what == android.media.MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) resourceReady()
+                false
             }
             vv.setOnCompletionListener {
                 try {

@@ -13,7 +13,8 @@ object SceneRouter {
         particles: Int = 250,
         cpuThreads: Int = 2,
         audio: Boolean = false,
-        vibration: Boolean = false
+        vibration: Boolean = false,
+        instance: String? = null
     ) {
         if (sceneId == SceneIds.SCENE_GAME_LIGHT || sceneId == SceneIds.SCENE_GAME_2D) {
             ToastUtil.show(context, "该游戏场景暂未实现，请使用 game_heavy")
@@ -52,6 +53,7 @@ object SceneRouter {
             putExtra(SceneIds.EXTRA_CPU_THREADS, cpuThreads)
             putExtra(SceneIds.EXTRA_AUDIO, audio)
             putExtra(SceneIds.EXTRA_VIBRATION, vibration)
+            putExtra(SceneControl.INSTANCE, instance)
             if (context !is android.app.Activity) {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }

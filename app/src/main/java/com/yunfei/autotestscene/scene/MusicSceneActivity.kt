@@ -8,7 +8,6 @@ import com.yunfei.autotestscene.util.registerNotExportedReceiver
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.yunfei.autotestscene.R
 import com.yunfei.autotestscene.ui.theme.AutoTestSceneAppTheme
 
-class MusicSceneActivity : ComponentActivity() {
+class MusicSceneActivity : ControlledSceneActivity() {
     private var mediaPlayer: MediaPlayer? = null
     private var stopped = false
 
@@ -57,6 +56,7 @@ class MusicSceneActivity : ComponentActivity() {
 
     private fun updateStatus(status: String) {
         statusText = status
+        if (status == "Error") resourceError("MUSIC_PLAYBACK_FAILED")
     }
 
     private fun startMusic() {
@@ -89,7 +89,9 @@ class MusicSceneActivity : ComponentActivity() {
                 start()
             }
 
+            check(mediaPlayer?.isPlaying == true)
             updateStatus("Running")
+            resourceReady()
             Log.d("AutoTestSceneApp", "MusicSceneActivity started playing R.raw.test_music")
         } catch (e: Exception) {
             Log.e("AutoTestSceneApp", "Failed to start music", e)
