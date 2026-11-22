@@ -11,6 +11,8 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Base64
 import androidx.activity.ComponentActivity
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
@@ -30,11 +32,17 @@ internal fun validateScene(scene: String?, version: Int, duration: Int, particle
         else -> null
     }
 
+internal data class OperatorSceneState(val scene: String? = null, val status: String = "IDLE", val reason: String? = null)
+
 object SceneControl {
     const val INSTANCE = "scene_instance_id"
+    internal const val OPERATOR_SCENE = "operator_scene"
     private val handler = Handler(Looper.getMainLooper())
     private val instances = LinkedHashMap<String, Instance>()
     private var current: Instance? = null
+    private var manualActivity: ControlledSceneActivity? = null
+    private val operator = MutableStateFlow(OperatorSceneState())
+    internal val operatorState = operator.asStateFlow()
 
     private class Instance(val id: String, val scene: String) {
         var state = "STARTING"
@@ -46,6 +54,7 @@ object SceneControl {
             state = next
             reason = error
             elapsed = SystemClock.elapsedRealtimeNanos()
+            if (this === current) operator.value = OperatorSceneState(scene, next, error)
         }
 
         fun json() = JSONObject().put("scene_instance_id", id).put("scene_id", scene)
@@ -58,12 +67,13 @@ object SceneControl {
         if (instances.size >= 128) instances.remove(instances.keys.first())
         instances[id] = instance
         val error = validateScene(scene, version, duration, particles, workers)
-            ?: if (current != null) "SCENE_BUSY" else null
+            ?: if (current != null || manualActivity != null || operator.value.status == "STARTING") "SCENE_BUSY" else null
         if (error != null) {
             instance.transition("ERROR", error)
             return false
         }
         current = instance
+        operator.value = OperatorSceneState(instance.scene, instance.state)
         handler.postDelayed({
             if (current === instance && instance.state == "STARTING") stop(instance, "READY_TIMEOUT")
         }, minOf(30_000L, duration * 1_000L))
@@ -74,7 +84,16 @@ object SceneControl {
     }
 
     fun attach(activity: ControlledSceneActivity) {
-        val id = activity.intent.getStringExtra(INSTANCE) ?: return
+        val id = activity.intent.getStringExtra(INSTANCE)
+        if (id == null) {
+            val scene = activity.intent.getStringExtra(OPERATOR_SCENE) ?: return
+            if (current == null && manualActivity == null && operator.value == OperatorSceneState(scene, "STARTING")) {
+                manualActivity = activity
+            } else {
+                activity.finish()
+            }
+            return
+        }
         val instance = current
         if (instance?.id == id && instance.activity == null && instance.state == "STARTING") {
             instance.activity = activity
@@ -85,10 +104,17 @@ object SceneControl {
 
     fun ready(activity: ControlledSceneActivity) {
         current?.takeIf { it.activity === activity && it.state == "STARTING" }?.transition("READY")
+        if (manualActivity === activity && operator.value.status == "STARTING") {
+            operator.value = operator.value.copy(status = "READY")
+        }
     }
 
     fun error(activity: ControlledSceneActivity, reason: String) {
         current?.takeIf { it.activity === activity }?.let { stop(it, reason) }
+        if (manualActivity === activity) {
+            operator.value = operator.value.copy(status = "ERROR", reason = reason)
+            activity.finish()
+        }
     }
 
     fun error(id: String, reason: String) {
@@ -96,11 +122,45 @@ object SceneControl {
     }
 
     fun destroyed(activity: ControlledSceneActivity) {
+        if (manualActivity === activity) {
+            manualActivity = null
+            if (operator.value.status != "ERROR") operator.value = operator.value.copy(status = "STOPPED")
+            return
+        }
         val instance = current?.takeIf { it.activity === activity } ?: return
         instance.activity = null
-        current = null
         if (instance.state == "STOPPING") instance.transition("STOPPED")
         else if (instance.state != "ERROR") instance.transition("ERROR", "SCENE_EXITED")
+        current = null
+    }
+
+    internal fun openManual(scene: String, launch: () -> Unit) {
+        if (current != null || manualActivity != null || operator.value.status == "STARTING") return
+        val starting = OperatorSceneState(scene, "STARTING")
+        operator.value = starting
+        try {
+            launch()
+        } catch (_: android.content.ActivityNotFoundException) {
+            operator.value = starting.copy(status = "ERROR", reason = "SCENE_UNAVAILABLE")
+        }
+        handler.postDelayed({
+            if (current == null && operator.value === starting) {
+                val activity = manualActivity
+                if (activity == null) operator.value = starting.copy(status = "ERROR", reason = "READY_TIMEOUT")
+                else error(activity, "READY_TIMEOUT")
+            }
+        }, 30_000L)
+    }
+
+    internal fun stopFromOperator() {
+        current?.let { stop(it); return }
+        val activity = manualActivity
+        if (activity != null) {
+            operator.value = operator.value.copy(status = "STOPPING")
+            activity.finish()
+        } else if (operator.value.status == "STARTING") {
+            operator.value = operator.value.copy(status = "STOPPED")
+        }
     }
 
     fun status(id: String, stop: Boolean): JSONObject {
@@ -119,14 +179,14 @@ object SceneControl {
         val activity = instance.activity
         if (activity != null) activity.finish()
         else {
-            current = null
             if (error == null) instance.transition("STOPPED")
+            current = null
         }
     }
 }
 
 abstract class ControlledSceneActivity : ComponentActivity() {
-    protected val isControlledScene: Boolean get() = intent.hasExtra(SceneControl.INSTANCE)
+    protected val isControlledScene: Boolean get() = intent.getStringExtra(SceneControl.INSTANCE) != null
     private var resumed = false
     private var resourceReady = false
 
@@ -143,7 +203,7 @@ abstract class ControlledSceneActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        SceneControl.error(this, "SCENE_BACKGROUND")
+        if (isControlledScene) SceneControl.error(this, "SCENE_BACKGROUND")
     }
 
     override fun onPause() {

@@ -73,6 +73,7 @@ class RecorderSceneActivity : ControlledSceneActivity() {
             startRecording()
         } else {
             statusText = "Error"
+            resourceError("MIC_PERMISSION_REQUIRED")
         }
     }
 
@@ -90,18 +91,18 @@ class RecorderSceneActivity : ControlledSceneActivity() {
                         .padding(24.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "Current scene: recorder")
+                    Text(text = "录音机")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Status: $statusText")
+                    Text(text = "状态：${operatorStatus(statusText)}")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Record file: $recordPath")
+                    Text(text = "录音文件：$recordPath")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Duration: ${durationSec}s")
+                    Text(text = "录音时长：${durationSec}s")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Stop: Back / STOP broadcast / stop button")
+                    Text(text = "可按返回键或点「停止场景」")
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { stopScene(shouldFinish = true) }) {
-                        Text("Stop")
+                        Text("停止场景")
                     }
                 }
             }
@@ -129,7 +130,7 @@ class RecorderSceneActivity : ControlledSceneActivity() {
             } else {
                 File(outDir, "recorder_${ts}.m4a")
             }
-            recordPath = if (isControlledScene) "Temporary audio · local only" else outFile.absolutePath
+            recordPath = if (isControlledScene) "临时录音，仅保存在设备" else outFile.absolutePath
 
             val mr = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(this)

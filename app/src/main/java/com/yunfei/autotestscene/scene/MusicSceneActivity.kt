@@ -149,16 +149,16 @@ private fun MusicScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Current scene: music playback")
+        Text(text = "音乐")
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Status: $statusText")
+        Text(text = "状态：${operatorStatus(statusText)}")
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Audio resource: test_music.mp3")
+        Text(text = "正在使用内置测试音频")
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Stop: tap the button or send STOP broadcast")
+        Text(text = "可按返回键或点「停止场景」")
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onStopClick) {
-            Text("Stop")
+            Text("停止场景")
         }
     }
 }

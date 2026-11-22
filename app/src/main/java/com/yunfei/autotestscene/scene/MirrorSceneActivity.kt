@@ -20,7 +20,6 @@ import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -48,7 +47,7 @@ import com.yunfei.autotestscene.ui.theme.AutoTestSceneAppTheme
 
 private const val TAG = "AutoTestSceneApp"
 
-class MirrorSceneActivity : ComponentActivity() {
+class MirrorSceneActivity : ControlledSceneActivity() {
     private var cameraId: String = "N/A"
     private var statusText by mutableStateOf("Stopped")
     private var overlayVisible by mutableStateOf(true)
@@ -72,7 +71,10 @@ class MirrorSceneActivity : ComponentActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) openCameraIfReady() else statusText = "Error"
+        if (granted) openCameraIfReady() else {
+            statusText = "Error"
+            resourceError("CAMERA_PERMISSION_REQUIRED")
+        }
     }
 
     private val surfaceListener = object : TextureView.SurfaceTextureListener {
@@ -95,13 +97,19 @@ class MirrorSceneActivity : ComponentActivity() {
 
         override fun onDisconnected(camera: CameraDevice) {
             camera.close()
-            if (!stopped) statusText = "Error"
+            if (!stopped) {
+                statusText = "Error"
+                runOnUiThread { resourceError("CAMERA_BIND_FAILED") }
+            }
         }
 
         override fun onError(camera: CameraDevice, error: Int) {
             Log.e(TAG, "mirror camera error: $error")
             camera.close()
-            if (!stopped) statusText = "Error"
+            if (!stopped) {
+                statusText = "Error"
+                runOnUiThread { resourceError("CAMERA_BIND_FAILED") }
+            }
         }
     }
 
@@ -112,7 +120,10 @@ class MirrorSceneActivity : ComponentActivity() {
         registerBackHandler()
         startCameraThread()
         cameraId = findFrontCameraId() ?: "N/A"
-        if (cameraId == "N/A") statusText = "Error"
+        if (cameraId == "N/A") {
+            statusText = "Error"
+            resourceError("CAMERA_UNAVAILABLE")
+        }
 
         setContent {
             AutoTestSceneAppTheme {
@@ -141,16 +152,16 @@ class MirrorSceneActivity : ComponentActivity() {
                                 .padding(12.dp),
                             verticalArrangement = Arrangement.Top
                         ) {
-                            Text("Current scene: mirror", color = Color.White)
+                            Text("镜子", color = Color.White)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Status: $statusText", color = Color.White)
+                            Text("状态：${operatorStatus(statusText)}", color = Color.White)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Camera ID: $cameraId", color = Color.White)
+                            Text("摄像头编号：$cameraId", color = Color.White)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Hint: Back / STOP broadcast to stop", color = Color.White)
+                            Text("按返回键退出", color = Color.White)
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(onClick = { stopScene(shouldFinish = true) }) {
-                                Text("Stop")
+                                Text("停止场景")
                             }
                         }
                     }
@@ -198,8 +209,10 @@ class MirrorSceneActivity : ComponentActivity() {
                     captureSession = session
                     runCatching {
                         session.setRepeatingRequest(previewBuilder?.build()!!, null, cameraHandler)
+                        runOnUiThread { resourceReady() }
                     }.onFailure {
                         statusText = "Error"
+                        runOnUiThread { resourceError("CAMERA_BIND_FAILED") }
                         Log.e(TAG, "mirror start preview failed", it)
                     }
                 }

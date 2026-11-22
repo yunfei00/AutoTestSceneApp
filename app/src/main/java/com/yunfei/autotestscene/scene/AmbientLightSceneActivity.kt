@@ -11,7 +11,6 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +36,7 @@ import java.util.Locale
 
 private const val TAG = "AutoTestSceneApp"
 
-class AmbientLightSceneActivity : ComponentActivity(), SensorEventListener {
+class AmbientLightSceneActivity : ControlledSceneActivity(), SensorEventListener {
     private var stopped = false
     private var receiverRegistered = false
 
@@ -101,6 +100,7 @@ class AmbientLightSceneActivity : ComponentActivity(), SensorEventListener {
         runCatching {
             val manager = getSystemService(Context.SENSOR_SERVICE) as? SensorManager ?: run {
                 statusText = "Error"
+                resourceError("SENSOR_UNAVAILABLE")
                 Log.e(TAG, "light sensor manager unavailable")
                 return
             }
@@ -110,6 +110,7 @@ class AmbientLightSceneActivity : ComponentActivity(), SensorEventListener {
 
             if (sensor == null) {
                 statusText = "Unsupported"
+                resourceError("SENSOR_UNAVAILABLE")
                 currentLuxText = "Unsupported"
                 lightLevelText = "Unsupported"
                 Log.d(TAG, "light sensor unsupported")
@@ -124,14 +125,17 @@ class AmbientLightSceneActivity : ComponentActivity(), SensorEventListener {
             val registered = manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI)
             if (!registered) {
                 statusText = "Error"
+                resourceError("SENSOR_UNAVAILABLE")
                 Log.d(TAG, "light sensor unsupported")
                 return
             }
 
             statusText = "Running"
+            resourceReady()
             Log.d(TAG, "light sensor registered")
         }.onFailure {
             statusText = "Error"
+            resourceError("SENSOR_UNAVAILABLE")
             Log.e(TAG, "light sensor start error", it)
         }
     }
@@ -240,9 +244,9 @@ private fun AmbientLightScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Current scene: ambient light test")
+        Text(text = "环境光")
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Status: $statusText")
+        Text(text = "状态：${operatorStatus(statusText)}")
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = currentLuxText,
@@ -256,18 +260,18 @@ private fun AmbientLightScreen(
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(16.dp))
-        AmbientLightInfoText(label = "Min lux", value = minLuxText)
-        AmbientLightInfoText(label = "Max lux", value = maxLuxText)
-        AmbientLightInfoText(label = "Average lux", value = avgLuxText)
-        AmbientLightInfoText(label = "Sample count", value = sampleCountText)
-        AmbientLightInfoText(label = "Sensor name", value = sensorNameText)
-        AmbientLightInfoText(label = "Sensor vendor", value = sensorVendorText)
-        AmbientLightInfoText(label = "Sensor power", value = sensorPowerText)
-        AmbientLightInfoText(label = "Sensor max range", value = sensorMaxRangeText)
-        AmbientLightInfoText(label = "Stop", value = "Back / STOP broadcast / stop button")
+        AmbientLightInfoText(label = "最低照度", value = minLuxText)
+        AmbientLightInfoText(label = "最高照度", value = maxLuxText)
+        AmbientLightInfoText(label = "平均照度", value = avgLuxText)
+        AmbientLightInfoText(label = "样本数", value = sampleCountText)
+        AmbientLightInfoText(label = "传感器", value = sensorNameText)
+        AmbientLightInfoText(label = "厂商", value = sensorVendorText)
+        AmbientLightInfoText(label = "功耗", value = sensorPowerText)
+        AmbientLightInfoText(label = "量程", value = sensorMaxRangeText)
+        AmbientLightInfoText(label = "Stop", value = "按返回键或点「停止场景」")
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onStopClick) {
-            Text("Stop")
+            Text("停止场景")
         }
     }
 }

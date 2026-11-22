@@ -406,16 +406,16 @@ private fun GameHeavyScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            Text(text = "Current scene: game load", color = Color.White)
+            Text(text = "高负载游戏", color = Color.White)
             Spacer(modifier = Modifier.height(6.dp))
-            Text(text = "Status: $statusText", color = Color.White)
-            Text(text = "Particles: $particlesCount", color = Color.White)
-            Text(text = "CPU threads: $cpuThreads", color = Color.White)
-            Text(text = "Audio: ${if (audioEnabled) "ON" else "OFF"}", color = Color.White)
-            Text(text = "Vibration: ${if (vibrationEnabled) "ON" else "OFF"}", color = Color.White)
-            Text(text = "Score: $score  FPS:$fps  Runtime:${runtimeSec}s", color = Color.White)
+            Text(text = "状态：${operatorStatus(statusText)}", color = Color.White)
+            Text(text = "粒子数：$particlesCount", color = Color.White)
+            Text(text = "CPU 线程：$cpuThreads", color = Color.White)
+            Text(text = "音频：${if (audioEnabled) "ON" else "OFF"}", color = Color.White)
+            Text(text = "振动：${if (vibrationEnabled) "ON" else "OFF"}", color = Color.White)
+            Text(text = "分数：$score  FPS:$fps  运行时长：${runtimeSec}s", color = Color.White)
             Spacer(modifier = Modifier.height(6.dp))
-            Text(text = "Hint: Back / STOP broadcast to stop", color = Color.White)
+            Text(text = "按返回键退出", color = Color.White)
         }
 
         Button(
@@ -424,7 +424,7 @@ private fun GameHeavyScreen(
                 .padding(bottom = 24.dp),
             onClick = onStopClick
         ) {
-            Text("鍋滄")
+            Text("停止场景")
         }
     }
 }

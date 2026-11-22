@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">AutoTestSceneApp</string>
+    <string name="operator_title">场景执行</string>
+    <string name="operator_common">常用场景</string>
+    <string name="operator_more">更多场景</string>
+    <string name="operator_less">收起更多场景</string>
+    <string name="operator_front">前置摄像头</string>
+    <string name="operator_rear">后置摄像头</string>
+    <string name="operator_video">视频</string>
+    <string name="operator_music">音乐</string>
+    <string name="operator_motor">马达</string>
+    <string name="operator_flashlight">手电筒</string>
+    <string name="operator_recorder">录音机</string>
+    <string name="operator_white">白屏</string>
+    <string name="operator_compass">指南针</string>
+    <string name="operator_light">环境光</string>
+    <string name="operator_game">高负载游戏</string>
+    <string name="operator_mirror">镜子</string>
+    <string name="operator_wallpaper">动态壁纸</string>
+    <string name="operator_idle">待命</string>
+    <string name="operator_starting">正在启动</string>
+    <string name="operator_ready">已就绪</string>
+    <string name="operator_stopping">正在停止</string>
+    <string name="operator_stopped">已停止</string>
+    <string name="operator_error">启动或运行失败</string>
+    <string name="operator_stop">停止场景</string>
+    <string name="operator_camera_permission">未授予摄像头权限，请在系统设置中授权后重试。</string>
+    <string name="operator_mic_permission">未授予麦克风权限，请在系统设置中授权后重试。</string>
+    <string name="operator_hardware_unavailable">设备不支持该硬件，或硬件暂时被占用。</string>
+    <string name="operator_timeout">等待就绪超时，请检查权限及设备状态后重试。</string>
+    <string name="operator_scene_exited">场景已退出前台，可重新启动。</string>
+    <string name="operator_try_again">请检查相关权限及设备占用，再重新启动。</string>
 </resources>

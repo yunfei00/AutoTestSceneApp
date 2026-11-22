@@ -109,14 +109,14 @@ private fun SceneScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "褰撳墠鍦烘櫙锛?sceneName")
+        Text(text = "马达")
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "褰撳墠鐘舵€侊細$statusText")
+        Text(text = "状态：${operatorStatus(statusText)}")
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "鎺у埗鏂瑰紡锛氭敹鍒?STOP 骞挎挱鎴栫偣鍑诲仠姝㈡寜閽悗鍋滄")
+        Text(text = "按返回键退出")
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onStopClick) {
-            Text("鍋滄")
+            Text("停止场景")
         }
     }
 }
