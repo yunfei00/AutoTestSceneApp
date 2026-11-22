@@ -6,6 +6,13 @@ import org.junit.Test
 
 class SceneControlTest {
     @Test
+    fun acceptsCommonTestScenesInVersionOne() {
+        for (scene in listOf("motor", "flashlight", "recorder", "white_screen")) {
+            assertNull(validateScene(scene, 1, 60, 250, 2))
+        }
+    }
+
+    @Test
     fun validatesVersionAndWorkloadBeforeLaunch() {
         assertNull(validateScene("game_heavy", 1, 120, 250, 2))
         assertEquals("UNSUPPORTED_PROTOCOL", validateScene("video", 2, 120, 250, 2))

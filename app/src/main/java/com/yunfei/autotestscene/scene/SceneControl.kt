@@ -17,7 +17,10 @@ import java.util.UUID
 import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 
-internal val CONTROLLED_SCENES = listOf("video", "music", "game_heavy", "front_camera", "rear_camera")
+internal val CONTROLLED_SCENES = listOf(
+    "video", "music", "game_heavy", "front_camera", "rear_camera",
+    "motor", "flashlight", "recorder", "white_screen",
+)
 
 internal fun validateScene(scene: String?, version: Int, duration: Int, particles: Int, workers: Int): String? =
     when {
@@ -123,6 +126,7 @@ object SceneControl {
 }
 
 abstract class ControlledSceneActivity : ComponentActivity() {
+    protected val isControlledScene: Boolean get() = intent.hasExtra(SceneControl.INSTANCE)
     private var resumed = false
     private var resourceReady = false
 

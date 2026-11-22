@@ -8,8 +8,9 @@ import com.yunfei.autotestscene.util.registerNotExportedReceiver
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -29,11 +30,28 @@ import com.yunfei.autotestscene.ui.theme.AutoTestSceneAppTheme
 
 private const val TAG = "AutoTestSceneApp"
 
-class FlashlightSceneActivity : ComponentActivity() {
+class FlashlightSceneActivity : ControlledSceneActivity() {
     private var stopped = false
     private var statusText by mutableStateOf("Stopped")
     private var torchCameraId by mutableStateOf("N/A")
     private var cameraManager: CameraManager? = null
+    private val torchCallback = object : CameraManager.TorchCallback() {
+        override fun onTorchModeChanged(cameraId: String, enabled: Boolean) {
+            if (stopped || cameraId != torchCameraId) return
+            if (enabled) {
+                statusText = "Running"
+                resourceReady()
+            } else if (statusText == "Running") {
+                resourceError("TORCH_DISABLED")
+            }
+        }
+
+        override fun onTorchModeUnavailable(cameraId: String) {
+            if (!stopped && cameraId == torchCameraId && statusText == "Running") {
+                resourceError("TORCH_UNAVAILABLE")
+            }
+        }
+    }
 
     private val stopReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -82,15 +100,17 @@ class FlashlightSceneActivity : ComponentActivity() {
                 statusText = "Error"
                 torchCameraId = "N/A"
                 Log.e(TAG, "No back torch camera found")
+                resourceError("TORCH_UNAVAILABLE")
                 return
             }
             torchCameraId = id
+            manager.registerTorchCallback(torchCallback, Handler(Looper.getMainLooper()))
             manager.setTorchMode(id, true)
-            statusText = "Running"
             Log.d(TAG, "flashlight started: cameraId=$id")
         }.onFailure {
             statusText = "Error"
             Log.e(TAG, "Failed to start flashlight", it)
+            resourceError("TORCH_START_FAILED")
         }
     }
 
@@ -120,7 +140,9 @@ class FlashlightSceneActivity : ComponentActivity() {
             }
         }.onFailure {
             Log.e(TAG, "Failed to stop flashlight", it)
+            resourceError("TORCH_STOP_FAILED")
         }
+        cameraManager?.unregisterTorchCallback(torchCallback)
         Log.d(TAG, "flashlight stopped")
         if (shouldFinish) finish()
     }

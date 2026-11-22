@@ -8,7 +8,6 @@ import com.yunfei.autotestscene.util.registerNotExportedReceiver
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.yunfei.autotestscene.ui.theme.AutoTestSceneAppTheme
 
-class MotorSceneActivity : ComponentActivity() {
+class MotorSceneActivity : ControlledSceneActivity() {
     private var vibrator: Vibrator? = null
     private var isStopped = false
 
@@ -57,14 +56,22 @@ class MotorSceneActivity : ComponentActivity() {
     }
 
     private fun startVibration() {
-        vibrator = getSystemService(VIBRATOR_SERVICE) as? Vibrator
-        val vib = vibrator ?: return
-        vib.vibrate(
-            VibrationEffect.createWaveform(
-                longArrayOf(0, 500, 500),
-                0
+        val vib = getSystemService(Vibrator::class.java)
+        if (vib?.hasVibrator() != true) {
+            statusText = "Vibrator unavailable"
+            resourceError("VIBRATOR_UNAVAILABLE")
+            return
+        }
+        vibrator = vib
+        runCatching {
+            vib.vibrate(
+                VibrationEffect.createWaveform(longArrayOf(0, 500, 500), 0)
             )
-        )
+            resourceReady()
+        }.onFailure {
+            statusText = "Vibration failed"
+            resourceError("VIBRATION_START_FAILED")
+        }
     }
 
     private fun stopScene(shouldFinish: Boolean) {
@@ -74,7 +81,7 @@ class MotorSceneActivity : ComponentActivity() {
         }
         isStopped = true
         statusText = "Stopped"
-        vibrator?.cancel()
+        runCatching { vibrator?.cancel() }.onFailure { resourceError("VIBRATION_STOP_FAILED") }
         vibrator = null
         if (shouldFinish) finish()
     }
