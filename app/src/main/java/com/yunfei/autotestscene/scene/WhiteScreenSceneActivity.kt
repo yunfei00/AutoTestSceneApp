@@ -8,7 +8,6 @@ import com.yunfei.autotestscene.util.registerNotExportedReceiver
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -27,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -36,10 +36,11 @@ import com.yunfei.autotestscene.ui.theme.AutoTestSceneAppTheme
 
 private const val TAG = "AutoTestSceneApp"
 
-class WhiteScreenSceneActivity : ComponentActivity() {
+class WhiteScreenSceneActivity : ControlledSceneActivity() {
     private var stopped = false
     private var statusText by mutableStateOf("Running")
     private var showOverlay by mutableStateOf(false)
+    private var firstFrameDrawn = false
 
     private val stopReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -63,6 +64,13 @@ class WhiteScreenSceneActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.White)
+                        .drawWithContent {
+                            drawContent()
+                            if (!firstFrameDrawn) {
+                                firstFrameDrawn = true
+                                window.decorView.post { resourceReady() }
+                            }
+                        }
                         .clickable {
                             showOverlay = !showOverlay
                             Log.d(TAG, "control overlay ${if (showOverlay) "shown" else "hidden"}")

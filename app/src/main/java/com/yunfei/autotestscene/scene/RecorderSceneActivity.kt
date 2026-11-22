@@ -13,7 +13,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -40,9 +39,11 @@ import java.util.Locale
 
 private const val TAG = "AutoTestSceneApp"
 
-class RecorderSceneActivity : ComponentActivity() {
+class RecorderSceneActivity : ControlledSceneActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var recorder: MediaRecorder? = null
+    private var temporaryRecording: File? = null
+    private var recordingStarted = false
     private var stopped = false
     private var startAtMs: Long = 0L
     private var statusText by mutableStateOf("Stopped")
@@ -110,6 +111,9 @@ class RecorderSceneActivity : ComponentActivity() {
     private fun ensurePermissionThenStart() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             startRecording()
+        } else if (isControlledScene) {
+            statusText = "Microphone permission required"
+            resourceError("MIC_PERMISSION_REQUIRED")
         } else {
             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
@@ -120,8 +124,12 @@ class RecorderSceneActivity : ComponentActivity() {
             val outDir = File(getExternalFilesDir("recordings") ?: filesDir, "recordings")
             outDir.mkdirs()
             val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val outFile = File(outDir, "recorder_${ts}.m4a")
-            recordPath = outFile.absolutePath
+            val outFile = if (isControlledScene) {
+                File.createTempFile("gnss-recorder-", ".m4a", cacheDir).also { temporaryRecording = it }
+            } else {
+                File(outDir, "recorder_${ts}.m4a")
+            }
+            recordPath = if (isControlledScene) "Temporary audio · local only" else outFile.absolutePath
 
             val mr = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(this)
@@ -136,31 +144,40 @@ class RecorderSceneActivity : ComponentActivity() {
             mr.setOutputFile(outFile.absolutePath)
             mr.prepare()
             mr.start()
+            recordingStarted = true
             startAtMs = System.currentTimeMillis()
             durationSec = 0
             handler.post(tickRunnable)
             statusText = "Running"
+            resourceReady()
             Log.d(TAG, "recorder started, file=$recordPath")
         }.onFailure {
             statusText = "Error"
             Log.e(TAG, "Failed to start recorder", it)
+            resourceError("RECORDING_START_FAILED")
         }
     }
 
     private fun stopRecorderOnly() {
         handler.removeCallbacksAndMessages(null)
-        val mr = recorder ?: return
-        runCatching {
-            mr.stop()
-        }.onFailure {
-            Log.e(TAG, "MediaRecorder stop failed", it)
+        if (recordingStarted) {
+            runCatching { recorder?.stop() }.onFailure {
+                Log.e(TAG, "MediaRecorder stop failed", it)
+                resourceError("RECORDING_STOP_FAILED")
+            }
         }
+        recordingStarted = false
         runCatching {
-            mr.release()
+            recorder?.release()
         }.onFailure {
             Log.e(TAG, "MediaRecorder release failed", it)
+            resourceError("RECORDING_RELEASE_FAILED")
         }
         recorder = null
+        temporaryRecording?.let {
+            if (it.exists() && !it.delete()) resourceError("RECORDING_TEMP_CLEANUP_FAILED")
+        }
+        temporaryRecording = null
     }
 
     private fun stopScene(shouldFinish: Boolean) {
