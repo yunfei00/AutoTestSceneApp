@@ -13,7 +13,6 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.Canvas
@@ -61,7 +60,7 @@ private data class HeavyParticle(
     var color: Color
 )
 
-class GameHeavySceneActivity : ComponentActivity() {
+class GameHeavySceneActivity : ControlledSceneActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private val cpuRunning = AtomicBoolean(false)
     private val cpuWorkers = mutableListOf<Thread>()
@@ -125,6 +124,11 @@ class GameHeavySceneActivity : ComponentActivity() {
         startCpuWorkers()
         startAudioIfEnabled()
         startVibrationIfEnabled()
+        if (cpuWorkers.size == cpuThreadsCount && cpuWorkers.isNotEmpty() && cpuWorkers.all { it.isAlive }) {
+            resourceReady()
+        } else {
+            resourceError("CPU_WORKERS_NOT_RUNNING")
+        }
         handler.post(frameRunnable)
 
         setContent {
@@ -218,6 +222,7 @@ class GameHeavySceneActivity : ComponentActivity() {
         cpuWorkers.forEach {
             runCatching { it.join(300) }
         }
+        if (cpuWorkers.any { it.isAlive }) resourceError("CPU_WORKERS_STILL_RUNNING")
         cpuWorkers.clear()
     }
 

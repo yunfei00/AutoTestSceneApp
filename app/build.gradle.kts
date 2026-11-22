@@ -22,6 +22,11 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            if (providers.gradleProperty("gnssTestSideBySide").isPresent) {
+                applicationIdSuffix = ".gnsstest"
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
