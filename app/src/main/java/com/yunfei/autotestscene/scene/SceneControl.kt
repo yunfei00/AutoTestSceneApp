@@ -186,7 +186,7 @@ object SceneControl {
 }
 
 abstract class ControlledSceneActivity : ComponentActivity() {
-    protected val isControlledScene: Boolean get() = intent.hasExtra(SceneControl.INSTANCE)
+    protected val isControlledScene: Boolean get() = intent.getStringExtra(SceneControl.INSTANCE) != null
     private var resumed = false
     private var resourceReady = false
 

@@ -54,7 +54,7 @@ object SceneRouter {
             putExtra(SceneIds.EXTRA_CPU_THREADS, cpuThreads)
             putExtra(SceneIds.EXTRA_AUDIO, audio)
             putExtra(SceneIds.EXTRA_VIBRATION, vibration)
-            putExtra(SceneControl.INSTANCE, instance)
+            if (instance != null) putExtra(SceneControl.INSTANCE, instance)
             if (operator) putExtra(SceneControl.OPERATOR_SCENE, sceneId)
             if (context !is android.app.Activity) {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
