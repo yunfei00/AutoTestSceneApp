@@ -11,7 +11,6 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
@@ -38,7 +37,7 @@ import kotlin.math.roundToInt
 
 private const val TAG = "AutoTestSceneApp"
 
-class CompassSceneActivity : ComponentActivity(), SensorEventListener {
+class CompassSceneActivity : ControlledSceneActivity(), SensorEventListener {
     private var stopped = false
     private var statusText by mutableStateOf("Stopped")
     private var azimuth by mutableFloatStateOf(0f)
@@ -75,17 +74,17 @@ class CompassSceneActivity : ComponentActivity(), SensorEventListener {
                         .padding(24.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "褰撳墠鍦烘櫙锛氭寚鍗楅拡")
+                    Text(text = "指南针")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "褰撳墠鐘舵€侊細$statusText")
+                    Text(text = "状态：${operatorStatus(statusText)}")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "鏂逛綅瑙掞細${azimuth.roundToInt()}掳")
+                    Text(text = "方位角：${azimuth.roundToInt()}°")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "鏂瑰悜鏂囧瓧锛?directionText")
+                    Text(text = "方向：$directionText")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "浼犳劅鍣ㄧ姸鎬侊細$sensorStatus")
+                    Text(text = "传感器：${operatorStatus(sensorStatus)}")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "鍋滄鏂瑰紡锛欱ack 杩斿洖 / STOP 骞挎挱 / 鍋滄鎸夐挳")
+                    Text(text = "按返回键退出")
                     Spacer(modifier = Modifier.height(12.dp))
                     Canvas(modifier = Modifier
                         .fillMaxSize()
@@ -107,7 +106,7 @@ class CompassSceneActivity : ComponentActivity(), SensorEventListener {
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(onClick = { stopScene(shouldFinish = true) }) {
-                        Text("鍋滄")
+                        Text("停止场景")
                     }
                 }
             }
@@ -120,12 +119,14 @@ class CompassSceneActivity : ComponentActivity(), SensorEventListener {
         magneticField = sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         if (accelerometer == null || magneticField == null) {
             statusText = "Error"
+            resourceError("SENSOR_UNAVAILABLE")
             sensorStatus = "Unsupported"
             return
         }
         sensorManager?.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
         sensorManager?.registerListener(this, magneticField, SensorManager.SENSOR_DELAY_GAME)
         statusText = "Running"
+        resourceReady()
         sensorStatus = "Accelerometer OK / MagneticField OK"
         Log.d(TAG, "compass sensor registered")
     }

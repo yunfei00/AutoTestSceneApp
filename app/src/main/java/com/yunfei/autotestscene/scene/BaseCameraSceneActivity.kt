@@ -46,7 +46,7 @@ abstract class BaseCameraSceneActivity : ControlledSceneActivity() {
     private var previewView: PreviewView? = null
     private var cameraProvider: ProcessCameraProvider? = null
 
-    private var statusText by mutableStateOf("Running")
+    private var statusText by mutableStateOf("正在启动")
 
     protected abstract val sceneTitle: String
     protected abstract val lensFacing: Int
@@ -66,7 +66,8 @@ abstract class BaseCameraSceneActivity : ControlledSceneActivity() {
         if (granted) {
             startCameraIfReady()
         } else {
-            statusText = "Stopped (CAMERA permission denied)"
+            statusText = "权限未授予"
+            resourceError("CAMERA_PERMISSION_REQUIRED")
         }
     }
 
@@ -98,11 +99,11 @@ abstract class BaseCameraSceneActivity : ControlledSceneActivity() {
                                 .background(Color.Black.copy(alpha = 0.3f))
                                 .padding(10.dp)
                         ) {
-                            Text(text = "褰撳墠鍦烘櫙锛?sceneTitle", color = Color.White)
+                            Text(text = sceneTitle, color = Color.White)
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(text = "褰撳墠鐘舵€侊細$statusText", color = Color.White)
+                            Text(text = "当前状态：$statusText", color = Color.White)
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(text = "鎸?Back 杩斿洖", color = Color.White)
+                            Text(text = "按系统返回键退出", color = Color.White)
                         }
                     }
                 }
@@ -136,12 +137,12 @@ abstract class BaseCameraSceneActivity : ControlledSceneActivity() {
                 provider.bindToLifecycle(this, selector, preview)
                 previewView?.previewStreamState?.observe(this) { state ->
                     if (state == PreviewView.StreamState.STREAMING) {
-                        statusText = "Running"
+                        statusText = "已就绪"
                         resourceReady()
                     }
                 }
             }.onFailure {
-                statusText = "Stopped (camera bind failed)"
+                statusText = "摄像头不可用"
                 resourceError("CAMERA_BIND_FAILED")
             }
         }, ContextCompat.getMainExecutor(this))
@@ -153,7 +154,7 @@ abstract class BaseCameraSceneActivity : ControlledSceneActivity() {
             return
         }
         isStopped = true
-        statusText = "Stopped"
+        statusText = "已停止"
         cameraProvider?.unbindAll()
         cameraProvider = null
         previewView = null

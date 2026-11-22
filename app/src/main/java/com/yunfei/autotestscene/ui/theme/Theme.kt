@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
@@ -41,6 +42,15 @@ fun AutoTestSceneAppTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        !dynamicColor && darkTheme -> darkColorScheme(
+            primary = Color(0xFFA9C7FF), onPrimary = Color(0xFF102E59),
+            background = Color(0xFF101923), surface = Color(0xFF172331),
+        )
+        !dynamicColor -> lightColorScheme(
+            primary = Color(0xFF224F98), onPrimary = Color.White,
+            background = Color(0xFFF3F6FA), surface = Color(0xFFF3F6FA),
+            surfaceVariant = Color(0xFFE5ECF6),
+        )
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

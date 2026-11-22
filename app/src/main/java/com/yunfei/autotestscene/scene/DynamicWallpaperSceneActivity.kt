@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -51,7 +50,7 @@ private data class SeedParticle(
     var scale: Float
 )
 
-class DynamicWallpaperSceneActivity : ComponentActivity() {
+class DynamicWallpaperSceneActivity : ControlledSceneActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var isStopped = false
     private var style = SceneIds.STYLE_DANDELION
@@ -96,6 +95,7 @@ class DynamicWallpaperSceneActivity : ComponentActivity() {
         registerStopReceiver()
         initParticles()
         handler.post(frameRunnable)
+        window.decorView.post { resourceReady() }
 
         setContent {
             AutoTestSceneAppTheme {
@@ -318,11 +318,11 @@ private fun DynamicWallpaperScreen(
                     .background(Color.Black.copy(alpha = 0.28f))
                     .padding(horizontal = 12.dp, vertical = 10.dp)
             ) {
-                Text(text = "Current scene: dynamic wallpaper", color = Color.White)
+                Text(text = "动态壁纸", color = Color.White)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Style: $styleName", color = Color.White)
+                Text(text = "样式：$styleName", color = Color.White)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Status: $statusText", color = Color.White)
+                Text(text = "状态：${operatorStatus(statusText)}", color = Color.White)
             }
         }
 
@@ -332,7 +332,7 @@ private fun DynamicWallpaperScreen(
                 .padding(bottom = 24.dp),
             onClick = onStopClick
         ) {
-            Text("鍋滄")
+            Text("停止场景")
         }
     }
 }
